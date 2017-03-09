@@ -1,0 +1,5 @@
+SPECIE = 'Mus_musculus'
+DB = 'UCSC'
+VERSION = 'mm10'
+NAME = 'Mus_musculus_UCSC_mm10.tar.gz'
+GENOME_URL='ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/'+SPECIE+'/'+DB+'/'+VERSION+'/'+NAME

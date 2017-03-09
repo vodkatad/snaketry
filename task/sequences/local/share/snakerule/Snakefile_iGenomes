@@ -1,0 +1,10 @@
+# snakemake should work as makefiles and we need to include them first of all
+include: "snakemake"
+
+rule prova:
+    shell: "echo GENOME_URL"
+
+rule genome:
+    params: GENOME_URL
+    output: "genome.tar.gz"
+    shell: "wget -O {output} {params}"
