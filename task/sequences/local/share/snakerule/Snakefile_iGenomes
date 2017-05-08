@@ -12,13 +12,14 @@ rule genome:
 
 # shell.prefix("set -euo pipefail;")  is the default now
 # Do not build the NAME.3.bt2 and NAME.4.bt2 portions of the index, which contain a bitpacked version of the reference sequences and are used for paired-end alignment.
+# with this option (-r) then bowtie2 was complaining of not finding file 3 and 4...did not find an option to tell him to not look for them :(
 rule chr_index:
 	input: "genome.tar.gz"
 	output: "{chr}.bt2.index"
 	shell: 	
 		"""
-		tar {input} Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa
-		bowtie2-build -r -f {input} {wildcards.chr}
-		touch {output}
-		rm Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa
+		tar -zxvf {input} Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa;
+		bowtie2-build -f Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa {wildcards.chr};
+		touch {output};
+		rm Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa;
 		"""
