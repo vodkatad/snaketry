@@ -1,14 +1,30 @@
 # snakemake should work as makefiles and we need to include them first of all
 include: "snakemake"
 
-rule prova:
-    shell: "echo GENOME_URL"
-
 rule genome:
     params: GENOME_URL
     output: "genome.tar.gz"
     shell: "wget -O {output} {params}"
 
+#[egrassi@gncomp3 mm10]$ tar -tvzf genome.tar.gz > lista_tar
+#-rwxrwxrwx esmith/root               4715 2012-05-24 02:15 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.3.bt2
+#-rwxrwxrwx esmith/root          886713321 2012-05-24 03:39 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.1.bt2
+#-rwxrwxrwx esmith/root          661884440 2012-05-24 05:01 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.rev.2.bt2
+#-rwxrwxrwx esmith/root          886713321 2012-05-24 05:01 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.rev.1.bt2
+#-rwxrwxrwx esmith/root          661884433 2012-05-24 02:15 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.4.bt2
+#-rwxrwxrwx esmith/root          661884440 2012-05-24 03:39 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.2.bt2
+#lrwxrwxrwx esmith/root                  0 2012-06-14 18:02 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.fa -> ../WholeGenomeFasta/genome.fa
+
+rule bowtie2_all_index:
+    input: "genome.tar.gz"
+    output: "genome.1.bt2"
+    shell:
+        """
+        tar -xzvf {input} Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/
+        rm Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.fa
+        mv Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/* .
+        rmdir -p Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/
+        """
 
 # shell.prefix("set -euo pipefail;")  is the default now
 # Do not build the NAME.3.bt2 and NAME.4.bt2 portions of the index, which contain a bitpacked version of the reference sequences and are used for paired-end alignment.
