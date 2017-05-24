@@ -26,6 +26,22 @@ rule bowtie2_all_index:
         rmdir -p Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/
         """
 
+# Rule to obtain all chr sizes
+# # remove .fa
+rule chr_sizes:
+    input: "genome.tar.gz"
+    output: "chr.sizes"
+    shell:
+        """
+        rm -f {output}
+        tar -xzvf {input} Mus_musculus/UCSC/mm10/Sequence/Chromosomes/
+        for chr in Mus_musculus/UCSC/mm10/Sequence/Chromosomes/*.fa; do \
+            echo -en `basename $chr` "\t" | sed 's/\.fa//1' >> {output}; \
+            tail -n +2 $chr | tr -d "\n" | wc -m >> {output}; \
+        done;
+        rm -rf Mus_musculus/
+        """
+
 # shell.prefix("set -euo pipefail;")  is the default now
 # Do not build the NAME.3.bt2 and NAME.4.bt2 portions of the index, which contain a bitpacked version of the reference sequences and are used for paired-end alignment.
 # with this option (-r) then bowtie2 was complaining of not finding file 3 and 4...did not find an option to tell him to not look for them :(
