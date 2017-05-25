@@ -26,6 +26,32 @@ rule bowtie2_all_index:
         rmdir -p Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/
         """
 
+rule gtf:
+    input: "genome.tar.gz"
+    output: "genes.gtf"
+    shell: 
+        """
+        tar -xzvf {input} Mus_musculus/UCSC/mm10/Annotation/Archives/archive-2014-05-23-16-05-10/Genes/genes.gtf
+        mv Mus_musculus/UCSC/mm10/Annotation/Archives/archive-2014-05-23-16-05-10/Genes/genes.gtf {output}
+        rm -rf Mus_musculus
+        """
+
+TOPHAT_ENV="/data/egrassi/snaketree/prj/align/local/share/tophat_conda.yaml"
+rule tophat_index:
+    input: gtf="genes.gtf", bowtie="genome.1.bt2"
+    output: "tophat_gtf"
+    params: "genome"
+    conda: TOPHAT_ENV
+    shell: 
+        """
+        tophat -G {input.gtf} --transcriptome-index={output} {params}
+        mv tophat_out/tmp/genome.fa genome.fa 
+        """
+
+#done by hand right now:
+#[egrassi@gncomp3 mm10]$ mv tophat_out/tmp/genome.fa genome.fa
+#
+
 # Rule to obtain all chr sizes
 # # remove .fa
 rule chr_sizes:
