@@ -81,3 +81,7 @@ rule chr_index:
 		touch {output};
 		rm Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa;
 		"""
+
+rule blacklist:
+    output: "mm10.blacklist.bed.gz"
+    shell: "wget -O {output} http://mitra.stanford.edu/kundaje/akundaje/release/blacklists/mm10-mouse/mm10.blacklist.bed.gz"
