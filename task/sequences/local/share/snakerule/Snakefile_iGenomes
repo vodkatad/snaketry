@@ -18,14 +18,16 @@ rule genome:
 rule bowtie2_all_index:
     input: "genome.tar.gz"
     output: "genome.1.bt2"
+    params: TAR_PREFIX
     shell:
         """
-        tar -xzvf {input} Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/
-        rm Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.fa
-        mv Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/* .
-        rmdir -p Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/
+        tar -xzvf {input} {params}/Sequence/Bowtie2Index/
+        rm {params}/Sequence/Bowtie2Index/genome.fa
+        mv {params}/Sequence/Bowtie2Index/* .
+        rmdir -p {params}/Sequence/Bowtie2Index/
         """
 
+# this rule is bad and needs manual fixing based on version ;/
 rule gtf:
     input: "genome.tar.gz"
     output: "genes.gtf"
@@ -57,17 +59,19 @@ rule tophat_index:
 rule chr_sizes:
     input: "genome.tar.gz"
     output: "chr.sizes"
+    params: TAR_PREFIX, SPECIE
     shell:
         """
         rm -f {output}
-        tar -xzvf {input} Mus_musculus/UCSC/mm10/Sequence/Chromosomes/
-        for chr in Mus_musculus/UCSC/mm10/Sequence/Chromosomes/*.fa; do \
-            echo -en `basename $chr` "\t" | sed 's/\.fa//1' >> {output}; \
+        tar -xzvf {input} {params[0]}/Sequence/Chromosomes/
+        for chr in {params[0]}/Sequence/Chromosomes/*.fa; do \
+            echo -en `basename $chr`"\t" | sed 's/\.fa//1' >> {output}; \
             tail -n +2 $chr | tr -d "\n" | wc -m >> {output}; \
         done;
-        rm -rf Mus_musculus/
+        rm -rf {params[1]}
         """
 
+### XXX needs to be generalized
 # shell.prefix("set -euo pipefail;")  is the default now
 # Do not build the NAME.3.bt2 and NAME.4.bt2 portions of the index, which contain a bitpacked version of the reference sequences and are used for paired-end alignment.
 # with this option (-r) then bowtie2 was complaining of not finding file 3 and 4...did not find an option to tell him to not look for them :(
@@ -82,6 +86,7 @@ rule chr_index:
 		rm Mus_musculus/UCSC/mm10/Sequence/Chromosomes/{wildcards.chr}.fa;
 		"""
 
+# Downloaded the 01/06/2017
 rule blacklist:
     output: "mm10.blacklist.bed.gz"
     shell: "wget -O {output} http://mitra.stanford.edu/kundaje/akundaje/release/blacklists/mm10-mouse/mm10.blacklist.bed.gz"

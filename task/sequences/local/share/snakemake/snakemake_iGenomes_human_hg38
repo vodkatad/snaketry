@@ -1,0 +1,6 @@
+SPECIE = 'Homo_sapiens'
+DB = 'UCSC'
+VERSION = 'hg38'
+NAME = 'Homo_sapiens_UCSC_hg38.tar.gz'
+TAR_PREFIX = 'Homo_sapiens/UCSC/hg38'
+GENOME_URL='ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/'+SPECIE+'/'+DB+'/'+VERSION+'/'+NAME
