@@ -1,0 +1,6 @@
+SPECIE = 'Homo_sapiens'
+DB = 'UCSC'
+VERSION = 'hg19'
+NAME = 'Homo_sapiens_UCSC_hg19.tar.gz'
+TAR_PREFIX = 'Homo_sapiens/UCSC/hg19'
+GENOME_URL='ftp://igenome:G3nom3s4u@ussd-ftp.illumina.com/'+SPECIE+'/'+DB+'/'+VERSION+'/'+NAME
