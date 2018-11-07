@@ -1,5 +1,5 @@
 # snakemake should work as makefiles and we need to include them first of all
-include: "snakemake"
+include: "conf.sk"
 
 rule genome:
     params: GENOME_URL
@@ -27,15 +27,29 @@ rule bowtie2_all_index:
         rmdir -p {params}/Sequence/Bowtie2Index/
         """
 
+rule bwa_all_index:
+    input: "genome.tar.gz"
+    output: "placeholder_bwa"
+    params: TAR_PREFIX
+    shell:
+        """
+        tar -xzvf {input} {params}/Sequence/BWAIndex/version0.6.0/
+        rm {params}/Sequence/BWAIndex/version0.6.0/genome.fa
+        mv {params}/Sequence/BWAIndex/version0.6.0/* .
+        rm -rf {params}/Sequence/BWAIndex/
+	touch {output}
+        """
+
 # this rule is bad and needs manual fixing based on version ;/
 rule gtf:
     input: "genome.tar.gz"
     output: "genes.gtf"
+    params: TAR_PREFIX, SPECIE
     shell: 
         """
-        tar -xzvf {input} Mus_musculus/UCSC/mm10/Annotation/Archives/archive-2014-05-23-16-05-10/Genes/genes.gtf
-        mv Mus_musculus/UCSC/mm10/Annotation/Archives/archive-2014-05-23-16-05-10/Genes/genes.gtf {output}
-        rm -rf Mus_musculus
+        tar -xzvf {input} {params[0]}/Annotation/Archives/archive-2014-05-23-16-05-10/Genes/genes.gtf
+        mv {params[0]}/Annotation/Archives/archive-2014-05-23-16-05-10/Genes/genes.gtf {output}
+        rm -rf {params[1]}
         """
 
 TOPHAT_ENV="/data/egrassi/snaketree/prj/align/local/share/tophat_conda.yaml"
