@@ -1,0 +1,15 @@
+# TODO write rules and migrate from /home/egrassi/strata/local/share/data - put var in conf.sk - get getfastalen from bit instead of bad perl
+ROOT="/home/egrassi"
+PRJ_ROOT=ROOT+"/common/task/sequences"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+FASTA="/home/egrassi/strata/local/share/data/GRCh38.d1.vd1.fa"
+
+rule:
+    input: FASTA
+    output: "chrom_sizes"
+    params: tool=SRC_DIR+"/fasta_len.pl"
+    shell:
+        """
+            {params.tool} < {input} > {output}
+        """

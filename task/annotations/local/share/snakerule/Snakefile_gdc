@@ -1,0 +1,40 @@
+include: "conf.sk"
+
+rule gtf:
+    output: GTF_NAME
+    params: GTF
+    shell:
+        """
+            wget -O {output} {params}
+        """
+
+# we merge here disregarding strand
+# TODO get at least gene_id from the gtf annotations
+rule bed_unstranded:
+    input: gtf=GTF_NAME, chrom=ROOT+"/common/task/sequences/dataset/"+NAME+"/chrom_sizes"
+    output: "{class}_unstranded.bed.gz"
+    shell:
+        """
+        zcat {input.gtf} | grep -v "^#" | bawk '$3=="{wildcards.class}" {{ print $1,$4-1,$5 }}' | bedtools sort -g <(cut -f 1 {input.chrom}) -i - | bedtools merge -i - | gzip > {output}
+        """
+
+
+# introns are defined conservatively in case of overlapping genes
+rule introns:
+    input: exons="exon_unstranded.bed.gz", genes="gene_unstranded.bed.gz"
+    output: "introns_unstranded.bed.gz"
+    shell:
+        """
+        bedtools subtract -sorted -a {input.genes} -b {input.exons} | gzip > {output}
+        """
+
+rule intergenic:
+    input: genes="gene_unstranded.bed.gz", chrom_sizes=ROOT+"/common/task/sequences/dataset/"+NAME+"/chrom_sizes"
+    output: "intergenic.bed.gz"
+    shell:
+        """
+        bedtools complement -sorted -i {input.genes} -g {input.chrom_sizes} | gzip > {output}
+        """
+
+
+## TODO interesting regions / TSS
