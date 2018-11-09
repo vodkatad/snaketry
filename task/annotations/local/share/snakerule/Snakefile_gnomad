@@ -1,0 +1,6 @@
+GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/genomes/gnomad.genomes.r2.1.exome_calling_intervals.sites.vcf.bgz'
+
+rule exon_vaf:
+    output: "https://storage.googleapis.com/gnomad-public/release/2.1/vcf/genomes/gnomad.genomes.r2.1.exome_calling_intervals.sites.vcf.bgz"
+    params: url=GNOMAD_EXOME
+    shell: "wget -O {output} {params.url}"
