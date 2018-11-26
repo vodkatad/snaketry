@@ -1,6 +1,82 @@
-GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/genomes/gnomad.genomes.r2.1.exome_calling_intervals.sites.vcf.bgz'
 
-rule exon_vaf:
-    output: "https://storage.googleapis.com/gnomad-public/release/2.1/vcf/genomes/gnomad.genomes.r2.1.exome_calling_intervals.sites.vcf.bgz"
-    params: url=GNOMAD_EXOME
-    shell: "wget -O {output} {params.url}"
+#############THESE are on hg19, I fear and hate.
+#http://gnomad.broadinstitute.org/downloads
+#GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/exomes/gnomad.exomes.r2.1.sites.vcf.bgz'
+
+#rule exon_vaf:
+#    output: vcf="gnomad.exomes.vcf.bgz"
+#    params: url=GNOMAD_EXOME
+#    shell: "wget -O {output.vcf} {params.url}; wget -O {output.vcf}.tbi {params.url}.tbi"
+
+
+# Lazily downloaded by hand:
+#ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/Mutect2/af-only-gnomad.hg38.vcf.gz
+
+
+##--restrict-alleles-to BIALLELIC
+rule filter_AF_biallelic:
+    input: vcf="af-only-gnomad.hg38.vcf.gz"
+    singularity: "/home/egrassi/gatk/gatk.img"
+    output: "gnomad.forcontamination.exomes.vcf"
+    shell: 
+        """
+         gatk SelectVariants --restrict-alleles-to BIALLELIC -V {input.vcf} --selectExpressions "AF > 0.05" -O {output}
+        """
+
+#(plot) [gnomad]egrassi@hactarlogin$ seff 31681
+#Job ID: 31681
+#Cluster: hactar
+#User/Group: egrassi/egrassi
+#State: COMPLETED (exit code 0)
+#Cores: 1
+#CPU Utilized: 01:47:15
+#CPU Efficiency: 32.22% of 05:32:51 core-walltime
+#Job Wall-clock time: 05:32:51
+#Memory Utilized: 862.20 MB
+#Memory Efficiency: 86.22% of 1000.00 MB
+#
+#
+#faster with smaller gnomad from gatk:
+#Job ID: 31892
+#Cluster: hactar
+#User/Group: egrassi/egrassi
+#State: COMPLETED (exit code 0)
+#Cores: 1
+#CPU Utilized: 00:11:09
+#CPU Efficiency: 98.96% of 00:11:16 core-walltime
+#Job Wall-clock time: 00:11:16
+#Memory Utilized: 1.63 GB
+#Memory Efficiency: 41.64% of 3.91 GB
+
+##contig=<ID=1,length=249250621,assembly=gnomAD_GRCh37>
+#
+rule add_chr_to_vcf_porc:
+    input: "{whatever}.vcf.gz"
+    output: "chr_{whatever}.vcf.bgz"
+    shell:
+        """
+        zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output}
+        tabix -p vcf {output}
+        """
+
+
+
+# can we call a sequence of singularity and not singularity rules with --use-singularity? Where the first one will run?
+rule test_sing1:
+    output: "normal_tools"
+    shell: 
+        """
+            echo -e "2.3\\n22.3\\n0.1\\n-0.11\\n0\\n2.304" > {output}.tmp
+            cat {output}.tmp | sort -k1,1n > {output}
+            env | grep SING >> {output}
+            rm {output}.tmp
+        """
+
+rule test_sing2:
+    input: "normal_tools"
+    singularity: "/home/egrassi/gatk/gatk.img"
+    output: "sing_gatk"
+    shell: 
+        """
+           gatk SelectVariants -h > {output} 
+        """
