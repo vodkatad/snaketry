@@ -1,0 +1,5 @@
+rule vep_install_hg:
+    shell:
+        """
+        vep_install -a cf -s homo_sapiens -y GRCh38 -c . -CONVERT
+        """

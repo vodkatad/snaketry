@@ -14,6 +14,16 @@ rule genome:
 #-rwxrwxrwx esmith/root          661884433 2012-05-24 02:15 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.4.bt2
 #-rwxrwxrwx esmith/root          661884440 2012-05-24 03:39 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.2.bt2
 #lrwxrwxrwx esmith/root                  0 2012-06-14 18:02 Mus_musculus/UCSC/mm10/Sequence/Bowtie2Index/genome.fa -> ../WholeGenomeFasta/genome.fa
+rule whole_genome:
+    input: "genome.tar.gz"
+    output: "genome.fa"
+    params: TAR_PREFIX
+    shell:
+        """
+        tar -xzvf {input} {params}/Sequence/WholeGenomeFasta/genome.fa
+        mv {params}/Sequence/WholeGenomeFasta/genome.fa {output}
+        rm -rf {params}/Sequence/
+        """
 
 rule bowtie2_all_index:
     input: "genome.tar.gz"

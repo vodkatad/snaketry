@@ -13,3 +13,17 @@ rule:
         """
             {params.tool} < {input} > {output}
         """
+
+
+rule xenome:
+    input: graft="genome.fa", host=PRJ_ROOT+"/dataset/iGenomes/mmusculus/mm10/genome.fa"
+    output: "xenomidx-both.header"
+    singularity: ROOT+"/xenome/xenome.img"
+    params: mem=24, thread=8
+    shell:
+        """
+        xenome index -M {params.mem} -T {params.thread} -P xenomidx -H {input.host} -G {input.graft}
+        """
+
+#[gdc]egrassi@hactarlogin$ snakemake -j1 xenomidx-both.header --cluster-config=/home/egrassi/strata/local/share/hactar.json --cluster "sbatch --mail-user={cluster.mail-user} --mail-type={cluster.mail-type} --partition={cluster.partition} --nodes={cluster.nodes} --job-name={cluster.job-name} --output={cluster.output} --error={cluster.error} --time=06:00:00 --mem=25000 --ntasks=8" --use-singularity --singularity-args "-B /home/egrassi/:/home/egrassi/"
+#
