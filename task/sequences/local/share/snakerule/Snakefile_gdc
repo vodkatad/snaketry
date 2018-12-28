@@ -18,12 +18,26 @@ rule:
 rule xenome:
     input: graft="genome.fa", host=PRJ_ROOT+"/dataset/iGenomes/mmusculus/mm10/genome.fa"
     output: "xenomidx-both.header"
-    singularity: ROOT+"/xenome/xenome.img"
+    singularity: ROOT+"/gossamer/gossamer.img"
     params: mem=24, thread=8
     shell:
         """
         xenome index -M {params.mem} -T {params.thread} -P xenomidx -H {input.host} -G {input.graft}
         """
 
-#[gdc]egrassi@hactarlogin$ snakemake -j1 xenomidx-both.header --cluster-config=/home/egrassi/strata/local/share/hactar.json --cluster "sbatch --mail-user={cluster.mail-user} --mail-type={cluster.mail-type} --partition={cluster.partition} --nodes={cluster.nodes} --job-name={cluster.job-name} --output={cluster.output} --error={cluster.error} --time=06:00:00 --mem=25000 --ntasks=8" --use-singularity --singularity-args "-B /home/egrassi/:/home/egrassi/"
+#[gdc]egrassi@hactarlogin$ snakemake -j1 xenomidx-both.header --cluster-config=/home/egrassi/strata/local/share/hactar.json --cluster "sbatch --mail-user={cluster.mail-user} --mail-type={cluster.mail-type} --partition={cluster.partition} --nodes={cluster.nodes} --job-name={cluster.job-name} --output={cluster.output} --error={cluster.error} --time=20:00:00 --mem=25000 --ntasks=8" --use-singularity --singularity-args "-B /home/egrassi/:/home/egrassi/"
 #
+#porcaccia:
+#Job ID: 35225
+#Cluster: hactar
+#User/Group: egrassi/egrassi
+#State: COMPLETED (exit code 0)
+#Nodes: 1
+#Cores per node: 8
+#CPU Utilized: 4-11:12:35
+#CPU Efficiency: 76.38% of 5-20:21:44 core-walltime
+#Job Wall-clock time: 17:32:43
+#Memory Utilized: 25.15 GB
+#Memory Efficiency: 85.84% of 29.30 GB
+#
+## e io che mi stavo preoccupando per https://github.com/data61/gossamer/issues/9 :/
