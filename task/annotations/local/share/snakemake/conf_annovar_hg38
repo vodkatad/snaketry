@@ -6,7 +6,7 @@ SRC_DIR=PRJ_ROOT+'/local/src'
 VERSION="hg38"
 
 #[hg38]egrassi@hactarlogin$ annotate_variation.pl -webfrom annovar -downdb avdblist -buildver hg38 .
-WANTED=["refGene", "avsnp150", "cosmic87_coding", "cosmic87_noncoding", "nci60"]
+WANTED=["refGene", "avsnp150", "cosmic87_coding", "cosmic87_noncoding", "nci60", "clinvar_20180603", "dbnsfp35c"]
 DIR="humandb"
 
 COSMICV="cosmic87"
