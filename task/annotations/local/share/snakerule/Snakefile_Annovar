@@ -1,0 +1,40 @@
+include: "conf.sk"
+
+ruleorder: cosmic > general
+
+def all(wildcards):
+    return [DIR+"/"+VERSION+"_"+x+".txt" for x in WANTED]
+
+rule all:
+    input: unpack(all)
+
+rule general:
+    output: DIR+"/"+VERSION+"_{w}.txt"
+    params: version=VERSION, dir=DIR
+    shell:
+        """
+        annotate_variation.pl -buildver {params.version} -downdb -webfrom annovar {wildcards.w} {params.dir}
+        """
+
+def cosmic_switch(wildcards):
+    if wildcards.kind == "coding":
+        return [COSMIC+'/CosmicMutantExport.tsv.gz', COSMIC+'/CosmicCodingMuts.vcf.gz']
+    elif wildcards.kind == "noncoding":
+        return [COSMIC+'/CosmicNCV.tsv.gz', COSMIC+'/CosmicNonCodingVariants.vcf.gz']
+    else:
+        print("Wrong cosmic requested...")
+
+
+#prepare_annovar_user.pl -dbtype cosmic CosmicMutantExport.tsv -vcf CosmicCodingMuts.vcf > hg38_cosmic81_coding.txt
+#prepare_annovar_user.pl -dbtype cosmic CosmicNCV.tsv -vcf CosmicNonCodingVariants.vcf > hg38_cosmic81_noncoding.txt
+rule cosmic:
+    input: unpack(cosmic_switch)
+    output: DIR+"/"+VERSION+"_"+COSMICV+"_{kind}.txt"
+    params: script=SRC_DIR+"/prepare_annovar_user.pl"
+    shell:
+        """
+            mkdir -p DIR
+            gunzip -c {input[0]} > {output}.tmp
+            {params.script} -dbtype cosmic {output}.tmp -vcf {input[1]} > {output}
+            rm {output}.tmp
+        """
