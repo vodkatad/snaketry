@@ -1,7 +1,11 @@
+# Annotations needed to get GATK mut calling going
 
 #############THESE are on hg19, I fear and hate.
 #http://gnomad.broadinstitute.org/downloads
 #GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/exomes/gnomad.exomes.r2.1.sites.vcf.bgz'
+
+#gsutil cp gs://gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz .
+#gsutil cp gs://gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz.tbi .
 
 #rule exon_vaf:
 #    output: vcf="gnomad.exomes.vcf.bgz"
@@ -25,7 +29,15 @@ rule pon:
         """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
         """
 
+
+rule pontbi:
+    output: "1000g_pon.hg38.vcf.gz.tbi"
+    shell:
+        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz.tbi
+        """
+    
 ##--restrict-alleles-to BIALLELIC
+## exomes is misleading, see https://gatkforums.broadinstitute.org/gatk/discussion/12404/is-af-only-gnomad-hg38-vcf-gz-exome-or-genome-data
 rule filter_AF_biallelic:
     input: vcf="af-only-gnomad.hg38.vcf.gz"
     singularity: "/home/egrassi/gatk/gatk.img"
@@ -72,27 +84,47 @@ rule add_chr_to_vcf_porc:
         """
 
 
+### gdc hg38 genome
+#https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834
 
-# can we call a sequence of singularity and not singularity rules with --use-singularity? Where the first one will run? Outside
-rule test_sing1:
-    output: "normal_tools"
-    shell: 
+rule genome:
+    output: "GRCh38.d1.vd1.fa"
+    shell:
         """
-            echo -e "2.3\\n22.3\\n0.1\\n-0.11\\n0\\n2.304" > {output}.tmp
-            cat {output}.tmp | sort -k1,1n > {output}
-            env | grep SING >> {output}
-            rm {output}.tmp
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834
+            tar xvvzf {output}.tar.gz
+            rm {output}.tar.gz
         """
 
-rule test_sing2:
-    input: "normal_tools"
-    singularity: "/home/egrassi/gatk/gatk.img"
-    output: "sing_gatk"
-    shell: 
+rule genome_bwa_indices:
+    output: "GRCh38.d1.vd1.fa.bwt"
+    shell:
         """
-           gatk SelectVariants -h > {output} 
-           env >> {output}
-           echo -e "2.3\\n22.3\\n0.1\\n-0.11\\n0\\n2.304" >> {output}.tmp
-           cat {output}.tmp | sort -k1,1n >> {output}
-           rm {output}.tmp
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/25217ec9-af07-4a17-8db9-101271ee7225
+            tar xvvzf {output}.tar.gz
+            rm {output}.tar.gz
+        """
+
+
+rule genome_gatk_indices:
+    output: "GRCh38.d1.vd1.dict"
+    shell:
+        """
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/2c5730fb-0909-4e2a-8a7a-c9a7f8b2dad5
+            tar xvvzf {output}.tar.gz
+            rm {output}.tar.gz
+        """
+
+### dbsnp
+rule dbsnp:
+    output: "All_20180418.vcf.gz"
+    shell:
+        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
+        """
+
+# controllare cosa sia ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/GATK/All_20180418.vcf.gz
+rule dbsnp_tbi:
+    output: "All_20180418.vcf.gz.tbi"
+    shell:
+        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
         """
