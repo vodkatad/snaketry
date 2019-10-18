@@ -12,6 +12,18 @@
 # Lazily downloaded by hand:
 #ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/Mutect2/af-only-gnomad.hg38.vcf.gz
 
+# this is an enourmous file (~700Gb) that probably is not needed, considering:
+# https://gatkforums.broadinstitute.org/gatk/discussion/12404/is-af-only-gnomad-hg38-vcf-gz-exome-or-genome-data
+rule genomes_vaf:
+    output: vcf="gnomad.genomes.vcf.gz"
+    params: url="https://storage.googleapis.com/gnomad-public/release/2.1.1/liftover_grch38/vcf/genomes/gnomad.genomes.r2.1.1.sites.liftover_grch38.vcf.bgz"
+    shell: "wget -O {output.vcf} {params.url}; wget -O {output.vcf}.tbi {params.url}.tbi"
+
+rule pon:
+    output: "1000g_pon.hg38.vcf.gz"
+    shell:
+        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
+        """
 
 ##--restrict-alleles-to BIALLELIC
 rule filter_AF_biallelic:
@@ -61,7 +73,7 @@ rule add_chr_to_vcf_porc:
 
 
 
-# can we call a sequence of singularity and not singularity rules with --use-singularity? Where the first one will run?
+# can we call a sequence of singularity and not singularity rules with --use-singularity? Where the first one will run? Outside
 rule test_sing1:
     output: "normal_tools"
     shell: 
@@ -79,4 +91,8 @@ rule test_sing2:
     shell: 
         """
            gatk SelectVariants -h > {output} 
+           env >> {output}
+           echo -e "2.3\\n22.3\\n0.1\\n-0.11\\n0\\n2.304" >> {output}.tmp
+           cat {output}.tmp | sort -k1,1n >> {output}
+           rm {output}.tmp
         """

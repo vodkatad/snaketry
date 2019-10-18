@@ -1,0 +1,9 @@
+include: "conf.sk"
+
+rule refFlat:
+    output: "refFlat.txt.gz"
+    params: url="http://hgdownload.cse.ucsc.edu/goldenPath/"+VERSION+"/database/refFlat.txt.gz"
+    shell:
+        """
+            wget -O {output} {params.url}
+        """
