@@ -1,5 +1,7 @@
 # Annotations needed to get GATK mut calling going
-
+ALL= ["1000g_pon.hg38.vcf.gz","1000g_pon.hg38.vcf.gz.tbi","af-only-gnomad.hg38.vcf.gz","GRCh38.d1.vd1.fa","GRCh38.d1.vd1.fa.bwt","GRCh38.d1.vd1.dict","All_20180418.vcf.gz","All_20180418.vcf.gz.tbi","chr_All_20180418.vcf.bgz"]
+rule all:
+	input: ALL
 #############THESE are on hg19, I fear and hate.
 #http://gnomad.broadinstitute.org/downloads
 #GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/exomes/gnomad.exomes.r2.1.sites.vcf.bgz'
