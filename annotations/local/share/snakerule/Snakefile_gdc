@@ -1,8 +1,8 @@
 include: "conf.sk"
 
 rule gtf:
-    output: GTF_NAME
-    params: GTF
+    output: GTF_FILE
+    params: GTF_URL
     shell:
         """
             wget -O {output} {params}
@@ -11,7 +11,7 @@ rule gtf:
 # we merge here disregarding strand
 # TODO get at least gene_id from the gtf annotations
 rule bed_unstranded:
-    input: gtf=GTF_NAME, chrom=ROOT+"/common/task/sequences/dataset/"+NAME+"/chrom_sizes"
+    input: gtf=GTF_FILE, chrom=PRJ_ROOT+"/../sequences/dataset/"+VERSION+"/chrom_sizes"
     output: "{class}_unstranded.bed.gz"
     shell:
         """
@@ -29,7 +29,7 @@ rule introns:
         """
 
 rule intergenic:
-    input: genes="gene_unstranded.bed.gz", chrom_sizes=ROOT+"/common/task/sequences/dataset/"+NAME+"/chrom_sizes"
+    input: genes="gene_unstranded.bed.gz", chrom_sizes=ROOT+"/common/task/sequences/dataset/"+VERSION+"/chrom_sizes"
     output: "intergenic.bed.gz"
     shell:
         """

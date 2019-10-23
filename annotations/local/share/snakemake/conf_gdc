@@ -1,6 +1,19 @@
-ROOT="/home/egrassi"
-PRJ_ROOT=ROOT+"/common/task/annotations"
-NAME="gdc"
+import os
+ROOT=os.environ["BIOINFO_ROOT"]
 
-GTF="https://api.gdc.cancer.gov/data/25aa497c-e615-4cb7-8751-71f744f9691f"
-GTF_NAME="gencode.v22.annotation.gtf.gz"
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+
+PRJ_ROOT=find_prj_root()
+
+VERSION="GRCh38.d1.vd1"
+
+GTF_URL="https://api.gdc.cancer.gov/data/25aa497c-e615-4cb7-8751-71f744f9691f"
+GTF_FILE="gencode.v22.annotation.gtf.gz"
