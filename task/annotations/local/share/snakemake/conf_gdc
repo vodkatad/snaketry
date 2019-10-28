@@ -1,6 +1,0 @@
-ROOT="/home/egrassi"
-PRJ_ROOT=ROOT+"/common/task/annotations"
-NAME="gdc"
-
-GTF="https://api.gdc.cancer.gov/data/fe1750e4-fc2d-4a2c-ba21-5fc969a24f27"
-GTF_NAME="gencode.v22.annotation.gtf.gz"

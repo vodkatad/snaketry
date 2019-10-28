@@ -1,9 +1,21 @@
 # TODO write rules and migrate from /home/egrassi/strata/local/share/data - put var in conf.sk - get getfastalen from bit instead of bad perl
-ROOT="/home/egrassi"
-PRJ_ROOT=ROOT+"/common/task/sequences"
-SRC_DIR=PRJ_ROOT+"/local/src"
+import os
+ROOT=os.environ["BIOINFO_ROOT"]
 
-FASTA="/home/egrassi/strata/local/share/data/GRCh38.d1.vd1.fa"
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+
+PRJ_ROOT=find_prj_root()
+SRC_DIR=PRJ_ROOT+"/sequences/local/src"
+
+FASTA=ROOT+"/task/elena/GRCh38.d1.vd1.fa"   # TODO generalize
 
 rule:
     input: FASTA
