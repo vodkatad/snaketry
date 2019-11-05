@@ -1,4 +1,7 @@
 # Annotations needed to get GATK mut calling going
+ALL= ["1000g_pon.hg38.vcf.gz","1000g_pon.hg38.vcf.gz.tbi","af-only-gnomad.hg38.vcf.gz","GRCh38.d1.vd1.fa","GRCh38.d1.vd1.fa.bwt","GRCh38.d1.vd1.dict","All_20180418.vcf.gz","All_20180418.vcf.gz.tbi","chr_All_20180418.vcf.bgz", "gnomad.forcontamination.exomes.vcf"]
+rule all:
+	input: ALL
 
 #############THESE are on hg19, I fear and hate.
 #http://gnomad.broadinstitute.org/downloads
@@ -79,8 +82,8 @@ rule add_chr_to_vcf_porc:
     output: "chr_{whatever}.vcf.bgz"
     shell:
         """
-        zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output}
-        tabix -p vcf {output}
+        zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output};
+        tabix -p vcf {output};
         """
 
 
@@ -91,18 +94,18 @@ rule genome:
     output: "GRCh38.d1.vd1.fa"
     shell:
         """
-            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834
-            tar xvvzf {output}.tar.gz
-            rm {output}.tar.gz
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834;
+            tar xvvzf {output}.tar.gz;
+            rm {output}.tar.gz;
         """
 
 rule genome_bwa_indices:
     output: "GRCh38.d1.vd1.fa.bwt"
     shell:
         """
-            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/25217ec9-af07-4a17-8db9-101271ee7225
-            tar xvvzf {output}.tar.gz
-            rm {output}.tar.gz
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/25217ec9-af07-4a17-8db9-101271ee7225;
+            tar xvvzf {output}.tar.gz;
+            rm {output}.tar.gz;
         """
 
 
@@ -110,21 +113,21 @@ rule genome_gatk_indices:
     output: "GRCh38.d1.vd1.dict"
     shell:
         """
-            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/2c5730fb-0909-4e2a-8a7a-c9a7f8b2dad5
-            tar xvvzf {output}.tar.gz
-            rm {output}.tar.gz
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/2c5730fb-0909-4e2a-8a7a-c9a7f8b2dad5;
+            tar xvvzf {output}.tar.gz;
+            rm {output}.tar.gz;
         """
 
 ### dbsnp
 rule dbsnp:
     output: "All_20180418.vcf.gz"
     shell:
-        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
+        """ wget -O {output} ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/All_20180418.vcf.gz
         """
 
 # controllare cosa sia ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/GATK/All_20180418.vcf.gz
 rule dbsnp_tbi:
     output: "All_20180418.vcf.gz.tbi"
     shell:
-        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
+        """ wget -O {output} ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/All_20180418.vcf.gz.tbi
         """
