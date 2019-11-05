@@ -1,7 +1,8 @@
 # Annotations needed to get GATK mut calling going
-ALL= ["1000g_pon.hg38.vcf.gz","1000g_pon.hg38.vcf.gz.tbi","af-only-gnomad.hg38.vcf.gz","GRCh38.d1.vd1.fa","GRCh38.d1.vd1.fa.bwt","GRCh38.d1.vd1.dict","All_20180418.vcf.gz","All_20180418.vcf.gz.tbi","chr_All_20180418.vcf.bgz"]
+ALL= ["1000g_pon.hg38.vcf.gz","1000g_pon.hg38.vcf.gz.tbi","af-only-gnomad.hg38.vcf.gz","GRCh38.d1.vd1.fa","GRCh38.d1.vd1.fa.bwt","GRCh38.d1.vd1.dict","All_20180418.vcf.gz","All_20180418.vcf.gz.tbi","chr_All_20180418.vcf.bgz", "gnomad.forcontamination.exomes.vcf"]
 rule all:
 	input: ALL
+
 #############THESE are on hg19, I fear and hate.
 #http://gnomad.broadinstitute.org/downloads
 #GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/exomes/gnomad.exomes.r2.1.sites.vcf.bgz'
@@ -49,6 +50,16 @@ rule filter_AF_biallelic:
          gatk SelectVariants --restrict-alleles-to BIALLELIC -V {input.vcf} --selectExpressions "AF > 0.05" -O {output}
         """
 
+#https://gatkforums.broadinstitute.org/gatk/discussion/24026/getpileupsummaries-error-badly-formed-genome-unclippedloc
+rule filter_alt:
+    input: "gnomad.forcontamination.exomes.vcf"
+    output: "gnomad.forcontamination.noalt.exomes.vcf"
+    shell:
+        """
+          grep -v _alt {input} > {output};
+          tabix {output};
+        """
+    
 #(plot) [gnomad]egrassi@hactarlogin$ seff 31681
 #Job ID: 31681
 #Cluster: hactar
@@ -81,8 +92,8 @@ rule add_chr_to_vcf_porc:
     output: "chr_{whatever}.vcf.bgz"
     shell:
         """
-        zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output}
-        tabix -p vcf {output}
+        zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output};
+        tabix -p vcf {output};
         """
 
 
@@ -93,18 +104,18 @@ rule genome:
     output: "GRCh38.d1.vd1.fa"
     shell:
         """
-            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834
-            tar xvvzf {output}.tar.gz
-            rm {output}.tar.gz
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/254f697d-310d-4d7d-a27b-27fbf767a834;
+            tar xvvzf {output}.tar.gz;
+            rm {output}.tar.gz;
         """
 
 rule genome_bwa_indices:
     output: "GRCh38.d1.vd1.fa.bwt"
     shell:
         """
-            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/25217ec9-af07-4a17-8db9-101271ee7225
-            tar xvvzf {output}.tar.gz
-            rm {output}.tar.gz
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/25217ec9-af07-4a17-8db9-101271ee7225;
+            tar xvvzf {output}.tar.gz;
+            rm {output}.tar.gz;
         """
 
 
@@ -112,21 +123,29 @@ rule genome_gatk_indices:
     output: "GRCh38.d1.vd1.dict"
     shell:
         """
-            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/2c5730fb-0909-4e2a-8a7a-c9a7f8b2dad5
-            tar xvvzf {output}.tar.gz
-            rm {output}.tar.gz
+            wget -O {output}.tar.gz https://api.gdc.cancer.gov/data/2c5730fb-0909-4e2a-8a7a-c9a7f8b2dad5;
+            tar xvvzf {output}.tar.gz;
+            rm {output}.tar.gz;
         """
 
 ### dbsnp
 rule dbsnp:
     output: "All_20180418.vcf.gz"
     shell:
-        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
+        """ wget -O {output} ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/All_20180418.vcf.gz
         """
 
 # controllare cosa sia ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/GATK/All_20180418.vcf.gz
 rule dbsnp_tbi:
     output: "All_20180418.vcf.gz.tbi"
     shell:
-        """ wget -O {output} https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz
+        """ wget -O {output} ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/All_20180418.vcf.gz.tbi
         """
+
+
+rule wgs_intervals:
+    output: "wgs_calling_regions.hg38.interval_list"
+    shell: 
+        """
+            wget -O {output} https://00e9e64bacf6636c5522a1c712bf4d1c7402e8ee69c5ea38c3-apidata.googleusercontent.com/download/storage/v1/b/genomics-public-data/o/resources%2Fbroad%2Fhg38%2Fv0%2Fwgs_calling_regions.hg38.interval_list?qk=AD5uMEvZBpgrc8DQ9ehY7jQ9q7AyGIB0uT7VDjmfaUyJ1Fd2bHzBcZ2g8nyxn6jOINZK5ulgme-c0WaJSdxzovxtyNFWbPyyOdZMQUZac0eLaNVLmZaoejHQvOoH2BSZjlWMNqvdHADK26VEE-ILirmE6zejoPbiLsaMevhWpV9BfCPi52pd1CzNBpXoez-C56VuO3Rg4XzZsn-vtAQXPPmMIlq3k_qJUasMDUjlzUttCRj3DJSpg2jvvwGiWv9PKnSOJJHxvDEq72KsjOMCGauY6FrLeHWn1Egty9pfpSBBXy_78ruqWrsc_defudHG4tiahjsGi8K6MJLjpfwOlI8qNBG3lODPgECztXZ-IdUq8LrbJuRNNO2oKNx5XlgwQWR1cq5iQuqV2cihVvA42uS8uX0T9QbSDF7rXk6LXP39IlfxNFS992hJosPXXvd-Kf91NP6XUdO8Oq2cAdYFlnSTki7u6-4DfhBL_PinwKVpu_cSUyEJbVuqkRgAQMK8lYvkep0O6vxIRBVaMYQhIipSZMfBFdfQ1EgdmFgsd1aACRrKjzDMgkPijCZwbuibfpRFzw-QlHFVvaKFT7MA-3Xb65rEBFwK7STodJMsof6Oy2-Qj1lSZYdjzGRPjhr4C4LsulTcveLLsR_1VfAUL-jdZMYZ_bpypOZE-6XEzAbxcMdWv0EcyGmSR1Nio-JGytGeM8Y_NS_0tCCFpfU5Rp1OuqeditItJiV5UkJPc0B4rpW47LAZOW8wgE9olMP5RmfRzj5rDvywuC3Lywtt_sLAfIzutunM6AoAcGF3fNfxehC1wAEu5jsayPJ6SFdKy8DHatsr27JiUvRMzCx0xvMPZJr1UF7BUHnYJk-wi2CUGNrwhLspNrZZAqVz1T7NZOQjqUaKy0Si
+         """
