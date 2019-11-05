@@ -50,6 +50,16 @@ rule filter_AF_biallelic:
          gatk SelectVariants --restrict-alleles-to BIALLELIC -V {input.vcf} --selectExpressions "AF > 0.05" -O {output}
         """
 
+#https://gatkforums.broadinstitute.org/gatk/discussion/24026/getpileupsummaries-error-badly-formed-genome-unclippedloc
+rule filter_alt:
+    input: "gnomad.forcontamination.exomes.vcf"
+    output: "gnomad.forcontamination.noalt.exomes.vcf"
+    shell:
+        """
+          grep -v _alt {input} > {output};
+          tabix {output};
+        """
+    
 #(plot) [gnomad]egrassi@hactarlogin$ seff 31681
 #Job ID: 31681
 #Cluster: hactar
