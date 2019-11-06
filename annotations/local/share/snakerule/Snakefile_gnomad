@@ -44,6 +44,7 @@ rule pontbi:
 rule filter_AF_biallelic:
     input: vcf="af-only-gnomad.hg38.vcf.gz"
     singularity: "/home/egrassi/gatk/gatk.img"
+    docker: "egrassi/occamsnakes/sequenza:1"
     output: "gnomad.forcontamination.exomes.vcf"
     shell: 
         """
@@ -54,6 +55,7 @@ rule filter_AF_biallelic:
 rule filter_alt:
     input: "gnomad.forcontamination.exomes.vcf"
     output: "gnomad.forcontamination.noalt.exomes.vcf"
+    docker: "egrassi/occamsnakes/align_recalibrate:1"
     shell:
         """
           grep -v _alt {input} > {output};
@@ -90,6 +92,7 @@ rule filter_alt:
 rule add_chr_to_vcf_porc:
     input: "{whatever}.vcf.gz"
     output: "chr_{whatever}.vcf.bgz"
+    docker: "egrassi/occamsnakes/align_recalibrate:1"
     shell:
         """
         zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output};
@@ -148,4 +151,4 @@ rule wgs_intervals:
     shell: 
         """
             wget -O {output} https://00e9e64bacf6636c5522a1c712bf4d1c7402e8ee69c5ea38c3-apidata.googleusercontent.com/download/storage/v1/b/genomics-public-data/o/resources%2Fbroad%2Fhg38%2Fv0%2Fwgs_calling_regions.hg38.interval_list?qk=AD5uMEvZBpgrc8DQ9ehY7jQ9q7AyGIB0uT7VDjmfaUyJ1Fd2bHzBcZ2g8nyxn6jOINZK5ulgme-c0WaJSdxzovxtyNFWbPyyOdZMQUZac0eLaNVLmZaoejHQvOoH2BSZjlWMNqvdHADK26VEE-ILirmE6zejoPbiLsaMevhWpV9BfCPi52pd1CzNBpXoez-C56VuO3Rg4XzZsn-vtAQXPPmMIlq3k_qJUasMDUjlzUttCRj3DJSpg2jvvwGiWv9PKnSOJJHxvDEq72KsjOMCGauY6FrLeHWn1Egty9pfpSBBXy_78ruqWrsc_defudHG4tiahjsGi8K6MJLjpfwOlI8qNBG3lODPgECztXZ-IdUq8LrbJuRNNO2oKNx5XlgwQWR1cq5iQuqV2cihVvA42uS8uX0T9QbSDF7rXk6LXP39IlfxNFS992hJosPXXvd-Kf91NP6XUdO8Oq2cAdYFlnSTki7u6-4DfhBL_PinwKVpu_cSUyEJbVuqkRgAQMK8lYvkep0O6vxIRBVaMYQhIipSZMfBFdfQ1EgdmFgsd1aACRrKjzDMgkPijCZwbuibfpRFzw-QlHFVvaKFT7MA-3Xb65rEBFwK7STodJMsof6Oy2-Qj1lSZYdjzGRPjhr4C4LsulTcveLLsR_1VfAUL-jdZMYZ_bpypOZE-6XEzAbxcMdWv0EcyGmSR1Nio-JGytGeM8Y_NS_0tCCFpfU5Rp1OuqeditItJiV5UkJPc0B4rpW47LAZOW8wgE9olMP5RmfRzj5rDvywuC3Lywtt_sLAfIzutunM6AoAcGF3fNfxehC1wAEu5jsayPJ6SFdKy8DHatsr27JiUvRMzCx0xvMPZJr1UF7BUHnYJk-wi2CUGNrwhLspNrZZAqVz1T7NZOQjqUaKy0Si
-         """
+        """
