@@ -172,3 +172,24 @@ rule sequenza:
         """
             sequenza-utils gc_wiggle --fasta {input} -o {output} -w {wildcards.w}
         """
+
+
+### 12 intervals to run mutect in //
+rule dicttobed:
+    input: "GRCh38.d1.vd1.dict"
+    output: "GRCh38.d1.vd1.allchr.bed"
+    shell:
+        """
+         cut -f 2,3 {input} | sed 1d | sed 's/SN://1; s/LN://1'  | grep chr  | gawk -v OFS='\\t' -F'\\t' '{{print $1,0,$2}}' > {output}
+        """
+
+rule intervals:
+    input: ref="GRCh38.d1.vd1.fa", bed="GRCh38.d1.vd1.allchr.bed"
+    output: directory("GRCh38.d1.vd1.n{n}")
+    docker: "egrassi/occamsnakes/occamsnakes/gatk:1"
+    shell:
+        """
+            gatk SplitIntervals -R {input.ref} -L {input.bed} --scatter-count {wildcards.n} -O {output}
+        """
+
+
