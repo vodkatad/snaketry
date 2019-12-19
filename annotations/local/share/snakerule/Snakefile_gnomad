@@ -3,6 +3,11 @@ ALL= ["1000g_pon.hg38.vcf.gz","1000g_pon.hg38.vcf.gz.tbi","af-only-gnomad.hg38.v
 rule all:
 	input: ALL
 
+GATK_ODOCKER="egrassi/occamsnakes/gatk_fixedov:1"
+ALIGN_ODOCKER="egrassi/occamsnakes/align_recalibrate:1"
+SEQUENZA_ODOCKER="egrassi/occamsnakes/sequenza:1"
+
+## This dataset:
 #############THESE are on hg19, I fear and hate.
 #http://gnomad.broadinstitute.org/downloads
 #GNOMAD_EXOME='https://storage.googleapis.com/gnomad-public/release/2.1/vcf/exomes/gnomad.exomes.r2.1.sites.vcf.bgz'
@@ -43,8 +48,8 @@ rule pontbi:
 ## exomes is misleading, see https://gatkforums.broadinstitute.org/gatk/discussion/12404/is-af-only-gnomad-hg38-vcf-gz-exome-or-genome-data
 rule filter_AF_biallelic:
     input: vcf="af-only-gnomad.hg38.vcf.gz"
-    singularity: "/home/egrassi/gatk/gatk.img"
     output: "gnomad.forcontamination.exomes.vcf"
+    docker: GATK_ODOCKER
     shell: 
         """
          gatk SelectVariants --restrict-alleles-to BIALLELIC -V {input.vcf} --selectExpressions "AF > 0.05" -O {output}
@@ -54,6 +59,7 @@ rule filter_AF_biallelic:
 rule filter_alt:
     input: "gnomad.forcontamination.exomes.vcf"
     output: "gnomad.forcontamination.noalt.exomes.vcf"
+    docker: ALIGN_ODOCKER
     shell:
         """
           grep -v _alt {input} > {output};
@@ -90,6 +96,7 @@ rule filter_alt:
 rule add_chr_to_vcf_porc:
     input: "{whatever}.vcf.gz"
     output: "chr_{whatever}.vcf.bgz"
+    docker: ALIGN_ODOCKER
     shell:
         """
         zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output};
@@ -172,6 +179,7 @@ rule bed_wgs:
 rule sequenza:
     input: "GRCh38.d1.vd1.fa"
     output: "sequenza_gc_w{w}.wig.gz"
+    docker: SEQUENZA_ODOCKER
     shell:
         """
             sequenza-utils gc_wiggle --fasta {input} -o {output} -w {wildcards.w}
@@ -190,7 +198,8 @@ rule dicttobed:
 rule intervals:
     input: ref="GRCh38.d1.vd1.fa", bed="GRCh38.d1.vd1.allchr.bed"
     output: directory("GRCh38.d1.vd1.n{n}")
-    singularity: "/home/egrassi/gatk4140/gatk.img"
+    docker: GATK_ODOCKER
+    docker: 
     shell:
         """
             gatk SplitIntervals -R {input.ref} -L {input.bed} --scatter-count {wildcards.n} -O {output}
