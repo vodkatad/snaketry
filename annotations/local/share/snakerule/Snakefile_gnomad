@@ -199,7 +199,6 @@ rule intervals:
     input: ref="GRCh38.d1.vd1.fa", bed="GRCh38.d1.vd1.allchr.bed"
     output: directory("GRCh38.d1.vd1.n{n}")
     docker: GATK_ODOCKER
-    docker: 
     shell:
         """
             gatk SplitIntervals -R {input.ref} -L {input.bed} --scatter-count {wildcards.n} -O {output}
