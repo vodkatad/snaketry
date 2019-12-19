@@ -44,7 +44,6 @@ rule pontbi:
 rule filter_AF_biallelic:
     input: vcf="af-only-gnomad.hg38.vcf.gz"
     singularity: "/home/egrassi/gatk/gatk.img"
-    docker: "egrassi/occamsnakes/sequenza:1"
     output: "gnomad.forcontamination.exomes.vcf"
     shell: 
         """
@@ -55,7 +54,6 @@ rule filter_AF_biallelic:
 rule filter_alt:
     input: "gnomad.forcontamination.exomes.vcf"
     output: "gnomad.forcontamination.noalt.exomes.vcf"
-    docker: "egrassi/occamsnakes/align_recalibrate:1"
     shell:
         """
           grep -v _alt {input} > {output};
@@ -92,7 +90,6 @@ rule filter_alt:
 rule add_chr_to_vcf_porc:
     input: "{whatever}.vcf.gz"
     output: "chr_{whatever}.vcf.bgz"
-    docker: "egrassi/occamsnakes/align_recalibrate:1"
     shell:
         """
         zcat {input} | perl -ane 'if (/^#/) {{ s/contig=<ID=([^,]+)/contig=<ID=chr$1/; print "$_"}} else {{print "chr$_"}}' | bgzip > {output};
@@ -159,7 +156,15 @@ rule wgs_intervals_bed:
     output: "wgs_calling_regions.hg38.bed"
     shell: 
         """
-        grep -v "^@" {input} | gawk -v OFS='\\t' -F'\\t' '{{print $1, $2+1,$3}}' > {output}
+            grep -v "^@" {input} | gawk -v OFS='\\t' -F'\\t' '{{print $1, $2-1,$3}}' > {output}
+	    """
+
+rule bed_wgs:
+    input: "wgs_calling_regions.hg38.interval_list"
+    output: "wgs_calling_regions.hg38.bed.gz"
+    shell:
+        """
+            grep -v "^@" {input} | bawk '{{print $1,$2-1,$3,".",".",$4}}' | gzip -c > {output}
         """
 
 ### sequenza
@@ -167,7 +172,6 @@ rule wgs_intervals_bed:
 rule sequenza:
     input: "GRCh38.d1.vd1.fa"
     output: "sequenza_gc_w{w}.wig.gz"
-    docker: "egrassi/occamsnakes/sequenza:1"
     shell:
         """
             sequenza-utils gc_wiggle --fasta {input} -o {output} -w {wildcards.w}
@@ -186,7 +190,7 @@ rule dicttobed:
 rule intervals:
     input: ref="GRCh38.d1.vd1.fa", bed="GRCh38.d1.vd1.allchr.bed"
     output: directory("GRCh38.d1.vd1.n{n}")
-    docker: "egrassi/occamsnakes/occamsnakes/gatk:1"
+    singularity: "/home/egrassi/gatk4140/gatk.img"
     shell:
         """
             gatk SplitIntervals -R {input.ref} -L {input.bed} --scatter-count {wildcards.n} -O {output}
