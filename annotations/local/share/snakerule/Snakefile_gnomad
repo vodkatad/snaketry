@@ -188,4 +188,18 @@ rule intervals:
             gatk SplitIntervals -R {input.ref} -L {input.bed} --scatter-count {wildcards.n} -O {output}
         """
 
+### acnviewer
+rule centro:
+    output: "centro_build.txt"
+    shell:
+        """
+            curl -s "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/cytoBand.txt.gz" | gunzip -c | grep acen > {output}
+        """
 
+rule chrlen:
+    input: "GRCh38.d1.vd1.allchr.bed"
+    output: "chrlen.tsv"
+    shell:
+        """
+            gawk -v OFS='\\t' -F'\\t' '{{print $1,$3-$2}}' {input} > {output}
+        """
